@@ -60,6 +60,7 @@ public class NetworkHandler extends Thread {
 				e.printStackTrace();
 			}
 			
+			System.out.println("akgha");
 			if(num==0)
 				continue;
 			
@@ -134,9 +135,7 @@ public class NetworkHandler extends Thread {
 		SocketChannel socketChannel;
 		try {
 			socketChannel = SocketChannel.open();
-			socketChannel.configureBlocking(true);
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
-			socketChannel.configureBlocking(false);
 			pendingConnections.add(socketChannel);
 			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
