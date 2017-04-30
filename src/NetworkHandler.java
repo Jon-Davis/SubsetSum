@@ -149,6 +149,8 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.REQUEST_RESPONSE) {
 
 			}
+			ois.close();
+			oos.close();
 		} catch (IOException | ClassNotFoundException e) {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			ledger.remove(id);
