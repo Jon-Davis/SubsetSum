@@ -48,7 +48,7 @@ public class SubsetSum {
 		if(input[0].toLowerCase().equals("compute")){
 			start();
 		} else if (input[0].toLowerCase().equals("connect")){
-			networkHandler.connect(input[1], numberOfProcessors);
+			networkHandler.connect(input[1]);
 		} else if (input[0].toLowerCase().equals("help")){
 			System.out.println("Commands for SubsetSum:" + System.lineSeparator());
 			System.out.println("connect ipaddress - connects this computer with an exsisting network given an ip address in that network");

@@ -25,10 +25,12 @@ public class NetworkHandler extends Thread {
 	private String address;
 	private LinkedList<SocketChannel> sockets;
 	private ServerSocketChannel listener;
+	private int numberOfProcessors;
 
 	public NetworkHandler(int numberOfProcessors) {
 		ledger = new NetworkLedger();
 		sockets = new LinkedList<>();
+		this.numberOfProcessors = numberOfProcessors;
 		try {
 			selector = Selector.open();
 			listener = ServerSocketChannel.open();
@@ -108,20 +110,25 @@ public class NetworkHandler extends Thread {
 		try {
 			ObjectInputStream ois = new ObjectInputStream(selectableChannel.socket().getInputStream());
 			Message message = (Message) ois.readObject();
+			ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
 				ledger.addHost((Integer) message.argument,selectableChannel.socket().getRemoteSocketAddress().toString(), selectableChannel);
 				// TODO: Send a Message of Type HOST_INFO, with this computers
 				// info
 			} else if (message.type == Message.NEW_CONNECTION) {
-				String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
-				ledger.addHost((Integer) message.argument,id, selectableChannel);
+				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
+				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
+				oos.writeObject(hostInfo);
 				// TODO: Compile list of other machines in the network, send
 				// this in a message of type NETWORK_INFO
-				System.out.println("Recieved new connection from " + id);
+				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NETWORK_INFO) {
 				// TODO: Given a list of NETWORK_INFO connect to, and collect
 				// information from all other hosts in the network
+			} else if (message.type == Message.HOST_INFO) {
+				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
+				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.RUN) {
 				// TODO: Given a list of numbers to compute,
 				// calculate the permutations this host is responsible for given
@@ -145,7 +152,6 @@ public class NetworkHandler extends Thread {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			e.printStackTrace();
 		}
 	}
 	
@@ -160,7 +166,7 @@ public class NetworkHandler extends Thread {
 		return selector;
 	}
 
-	public void connect(String ipAddress, int numberOfProcessors) {
+	public void connect(String ipAddress) {
 		System.out.println("opening connections with " + ipAddress);
 		SocketChannel socketChannel;
 		try {
@@ -172,7 +178,6 @@ public class NetworkHandler extends Thread {
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
 			selector.wakeup();
-			System.out.println("Established connection with " + ipAddress);
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
