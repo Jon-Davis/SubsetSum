@@ -67,6 +67,8 @@ public class NetworkHandler extends Thread {
 			Iterator it = keys.iterator();
 			while (it.hasNext()){
 				SelectionKey key = (SelectionKey)it.next();
+				if(!key.isAcceptable())
+					continue;
 				if(key.interestOps()==SelectionKey.OP_ACCEPT){
 					//register the new connection with the Selector
 					try {
@@ -132,7 +134,9 @@ public class NetworkHandler extends Thread {
 		SocketChannel socketChannel;
 		try {
 			socketChannel = SocketChannel.open();
-			System.out.println(socketChannel.connect(new InetSocketAddress(ipAddress, port)));
+			socketChannel.configureBlocking(true);
+			socketChannel.connect(new InetSocketAddress(ipAddress, port));
+			socketChannel.configureBlocking(false);
 			pendingConnections.add(socketChannel);
 			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
