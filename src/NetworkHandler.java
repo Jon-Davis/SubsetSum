@@ -60,7 +60,6 @@ public class NetworkHandler extends Thread {
 				e.printStackTrace();
 			}
 			
-			System.out.println("akgha");
 			if(num==0)
 				continue;
 			

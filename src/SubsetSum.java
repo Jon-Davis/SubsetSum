@@ -20,11 +20,11 @@ public class SubsetSum {
 		System.out.println("How many processors:");
 		numberOfProcessors = Integer.parseInt(systemIn.nextLine());
 		System.out.println("Using " + numberOfProcessors + " processors. Starting program SubsetSum:");
+		running = true;
 		networkHandler = new NetworkHandler(4);
-		networkHandler.start();
 		inputHandler = new InputHandler(systemIn);
 		inputHandler.start();
-		running = true;
+		networkHandler.start();
 		while(running){
 			instance.run();
 		}
