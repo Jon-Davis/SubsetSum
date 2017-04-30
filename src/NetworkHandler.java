@@ -79,7 +79,6 @@ public class NetworkHandler extends Thread {
 						SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
 						sc.configureBlocking(false);
 						sc.register(this.getSelector(), SelectionKey.OP_READ);
-						System.out.println("new connection made");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -95,6 +94,7 @@ public class NetworkHandler extends Thread {
 	}
 	
 	public void read(SocketChannel selectableChannel){
+		System.out.println("reading");
 		 try {
 			ObjectInputStream ois = new ObjectInputStream(selectableChannel.socket().getInputStream());
 			ObjectOutputStream  oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
@@ -120,8 +120,6 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.REQUEST_RESPONSE){
 				
 			}
-			ois.close();
-			oos.close();
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -146,7 +144,6 @@ public class NetworkHandler extends Thread {
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
-			//oos.close();
 			selector.wakeup();
 			System.out.println("Established connection with " + ipAddress);
 		} catch (IOException e) {
