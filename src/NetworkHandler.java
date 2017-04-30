@@ -113,19 +113,26 @@ public class NetworkHandler extends Thread {
 			ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
-				ledger.addHost((Integer) message.argument,selectableChannel.socket().getRemoteSocketAddress().toString(), selectableChannel);
-				// TODO: Send a Message of Type HOST_INFO, with this computers
-				// info
+				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
+				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
+				oos.writeObject(hostInfo);
+				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NEW_CONNECTION) {
 				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
 				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
 				oos.writeObject(hostInfo);
-				// TODO: Compile list of other machines in the network, send
-				// this in a message of type NETWORK_INFO
+				LinkedList<String> networkIDs = new LinkedList<>();
+				for(NetworkLedgerEntry entry : ledger)
+					networkIDs.add(entry.id);
+				Message networkInfo = new Message(this.address, message.src, Message.NETWORK_INFO, networkIDs);
+				oos.writeObject(networkInfo);
 				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NETWORK_INFO) {
-				// TODO: Given a list of NETWORK_INFO connect to, and collect
-				// information from all other hosts in the network
+				System.out.println("Recieved network info.");
+				LinkedList<String> networkIDs = (LinkedList<String>) message.argument;
+				for(String id : networkIDs)
+					if(!ledger.contains(id))
+						connect(id);
 			} else if (message.type == Message.HOST_INFO) {
 				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
 				System.out.println("Recieved new connection from " + message.src);

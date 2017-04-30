@@ -30,6 +30,10 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 		return network.get(id).assosiatedSocket;
 	}
 	
+	public boolean contains(String id){
+		return network.containsKey(id);
+	}
+	
 	public void remove(String id){
 		network.remove(id);
 	}
