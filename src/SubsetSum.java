@@ -55,7 +55,7 @@ public class SubsetSum {
 			System.out.println("compute # [#,#,#] - computes the given array, checking to see if any subset of the array add to the given digit");
 			System.out.println("network           - returns the current network ledger");
 		} else if (input[0].toLowerCase().equals("network")){
-			System.out.println(networkHandler.getNetworkLedgerAsString());
+			//System.out.println(networkHandler.getNetworkLedgerAsString());
 		} else {
 			System.out.println(input[0] + " is not a valid command, type help for a list of valid commands.");
 		}

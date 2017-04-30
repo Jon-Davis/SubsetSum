@@ -117,11 +117,10 @@ public class NetworkHandler extends Thread {
 				// TODO: Send a Message of Type HOST_INFO, with this computers
 				// info
 			} else if (message.type == Message.NEW_CONNECTION) {
-				String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
-				ledger.addHost((Integer) message.argument,id, selectableChannel);
+				ledger.addHost((Integer) message.argument,selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0], selectableChannel);
 				// TODO: Compile list of other machines in the network, send
 				// this in a message of type NETWORK_INFO
-				System.out.println("Recieved new connection from " + id);
+				System.out.println("Recieved new connection from " + selectableChannel.socket().getRemoteSocketAddress().toString());
 			} else if (message.type == Message.NETWORK_INFO) {
 				// TODO: Given a list of NETWORK_INFO connect to, and collect
 				// information from all other hosts in the network
@@ -139,21 +138,14 @@ public class NetworkHandler extends Thread {
 
 			}
 		} catch (IOException | ClassNotFoundException e) {
-			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
-			ledger.remove(id);
-			System.out.println("Closing connection with " + id);
+			System.out.println("Closing connection with " + selectableChannel.socket().getRemoteSocketAddress().toString());
 			sockets.remove(selectableChannel);
 			try {
 				selectableChannel.close();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			e.printStackTrace();
 		}
-	}
-	
-	public String getNetworkLedgerAsString(){
-		return ledger.toString();
 	}
 
 	/**
@@ -180,6 +172,7 @@ public class NetworkHandler extends Thread {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
 		}
+
 	}
 
 }
