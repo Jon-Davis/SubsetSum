@@ -72,7 +72,9 @@ public class NetworkHandler extends Thread {
 				if(key.interestOps()==SelectionKey.OP_ACCEPT){
 					//register the new connection with the Selector
 					try {
-						((ServerSocketChannel) key.channel()).accept().register(this.getSelector(), SelectionKey.OP_READ);
+						SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
+						sc.configureBlocking(false);
+						sc.register(this.getSelector(), SelectionKey.OP_READ);
 						System.out.println("new connection made");
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -135,6 +137,7 @@ public class NetworkHandler extends Thread {
 		try {
 			socketChannel = SocketChannel.open();
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
+			socketChannel.configureBlocking(false);
 			pendingConnections.add(socketChannel);
 			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
