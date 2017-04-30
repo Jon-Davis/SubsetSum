@@ -111,33 +111,34 @@ public class NetworkHandler extends Thread {
 			ObjectInputStream ois = new ObjectInputStream(selectableChannel.socket().getInputStream());
 			Message message = (Message) ois.readObject();
 			ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
+			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
-				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
-				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
-				System.out.println("Sending host information to " +message.src);
+				ledger.addHost((Integer) message.argument, id, selectableChannel);
+				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
+				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
 				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NEW_CONNECTION) {
-				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
-				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
-				System.out.println("Sending host information to " +message.src);
+				ledger.addHost((Integer) message.argument, id, selectableChannel);
+				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
+				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for(NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
-				Message networkInfo = new Message(this.address, message.src, Message.NETWORK_INFO, networkIDs);
-				System.out.println("Sending network information to " +message.src);
+				Message networkInfo = new Message(this.address, id, Message.NETWORK_INFO, networkIDs);
+				System.out.println("Sending network information to " + id);
 				oos.writeObject(networkInfo);
-				System.out.println("Recieved new connection from " + message.src);
+				System.out.println("Recieved new connection from " + id);
 			} else if (message.type == Message.NETWORK_INFO) {
 				System.out.println("Recieved network info.");
 				LinkedList<String> networkIDs = (LinkedList<String>) message.argument;
-				for(String id : networkIDs)
-					if(!ledger.contains(id))
-						connect(id);
+				for(String ids : networkIDs)
+					if(!ledger.contains(ids))
+						connect(ids);
 			} else if (message.type == Message.HOST_INFO) {
-				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
+				ledger.addHost((Integer) message.argument, id, selectableChannel);
 				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.RUN) {
 				// TODO: Given a list of numbers to compute,
