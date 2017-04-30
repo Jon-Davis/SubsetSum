@@ -55,7 +55,7 @@ public class NetworkHandler extends Thread {
 			}
 			
 			try {
-				num = selector.select(100);
+				num = selector.select();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -67,7 +67,7 @@ public class NetworkHandler extends Thread {
 			Iterator it = keys.iterator();
 			while (it.hasNext()){
 				SelectionKey key = (SelectionKey)it.next();
-				if(key.equals(SelectionKey.OP_ACCEPT)){
+				if(key.interestOps()==SelectionKey.OP_ACCEPT){
 					//register the new connection with the Selector
 					try {
 						((ServerSocketChannel) key.channel()).accept().register(this.getSelector(), SelectionKey.OP_READ);
@@ -75,7 +75,7 @@ public class NetworkHandler extends Thread {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-				} else if (key.equals(SelectionKey.OP_READ)){
+				} else if (key.interestOps()==SelectionKey.OP_READ){
 					//read the message from the socket
 					read((SocketChannel) key.channel());
 				}
@@ -132,7 +132,7 @@ public class NetworkHandler extends Thread {
 		SocketChannel socketChannel;
 		try {
 			socketChannel = SocketChannel.open();
-			socketChannel.connect(new InetSocketAddress(ipAddress, port));
+			System.out.println(socketChannel.connect(new InetSocketAddress(ipAddress, port)));
 			pendingConnections.add(socketChannel);
 			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
