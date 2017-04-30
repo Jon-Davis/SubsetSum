@@ -59,6 +59,7 @@ public class NetworkHandler extends Thread {
 					//register the new connection with the Selector
 					try {
 						((ServerSocketChannel) key.channel()).accept().register(this.getSelector(), SelectionKey.OP_READ);
+						System.out.println("new connection made");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
