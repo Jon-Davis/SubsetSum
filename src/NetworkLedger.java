@@ -29,6 +29,10 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 	public NetworkChannel getAssosiatedSocket(String id){
 		return network.get(id).assosiatedSocket;
 	}
+	
+	public void remove(String id){
+		network.remove(id);
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
@@ -36,6 +40,18 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 	@Override
 	public Iterator<NetworkLedgerEntry> iterator() {
 		return network.values().iterator();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder string = new StringBuilder();
+		for(NetworkLedgerEntry entry : network.values()){
+			string.append(entry.toString() + System.lineSeparator());
+		}
+		return string.toString();
 	}
 
 }

@@ -21,7 +21,7 @@ public class SubsetSum {
 		numberOfProcessors = Integer.parseInt(systemIn.nextLine());
 		System.out.println("Using " + numberOfProcessors + " processors. Starting program SubsetSum:");
 		running = true;
-		networkHandler = new NetworkHandler(4);
+		networkHandler = new NetworkHandler(numberOfProcessors);
 		inputHandler = new InputHandler(systemIn);
 		inputHandler.start();
 		networkHandler.start();
@@ -51,9 +51,11 @@ public class SubsetSum {
 			networkHandler.connect(input[1], numberOfProcessors);
 		} else if (input[0].toLowerCase().equals("help")){
 			System.out.println("Commands for SubsetSum:" + System.lineSeparator());
-			System.out.println("connect ipaddress - connects this computer with an exsisting network given an ip address in that network" + System.lineSeparator());
-			System.out.println("compute # [#,#,#] - computes the given array, checking to see if any subset of the array add to the given digit" + System.lineSeparator());
-
+			System.out.println("connect ipaddress - connects this computer with an exsisting network given an ip address in that network");
+			System.out.println("compute # [#,#,#] - computes the given array, checking to see if any subset of the array add to the given digit");
+			System.out.println("network           - returns the current network ledger");
+		} else if (input[0].toLowerCase().equals("network")){
+			System.out.println(networkHandler.getNetworkLedgerAsString());
 		} else {
 			System.out.println(input[0] + " is not a valid command, type help for a list of valid commands.");
 		}
