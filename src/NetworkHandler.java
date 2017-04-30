@@ -48,9 +48,13 @@ public class NetworkHandler extends Thread {
 			
 			while(pendingConnections.size() > 0){
 				try {
+					pendingConnections.getFirst().configureBlocking(false);
 					pendingConnections.removeFirst().register(selector, SelectionKey.OP_READ);
 				} catch (ClosedChannelException e1) {
 					e1.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 			
@@ -136,14 +140,14 @@ public class NetworkHandler extends Thread {
 		SocketChannel socketChannel;
 		try {
 			socketChannel = SocketChannel.open();
+			socketChannel.configureBlocking(true);
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
-			socketChannel.configureBlocking(false);
 			pendingConnections.add(socketChannel);
-			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
-			oos.close();
+			//oos.close();
+			selector.wakeup();
 			System.out.println("Established connection with " + ipAddress);
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " +ipAddress);
