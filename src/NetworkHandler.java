@@ -106,23 +106,19 @@ public class NetworkHandler extends Thread {
 
 	public void read(SocketChannel selectableChannel) {
 		try {
-			selectableChannel.configureBlocking(true);
 			ObjectInputStream ois = new ObjectInputStream(selectableChannel.socket().getInputStream());
-			ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
 			Message message = (Message) ois.readObject();
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
-				ledger.addHost((Integer) message.argument,
-						selectableChannel.socket().getRemoteSocketAddress().toString(), selectableChannel);
+				ledger.addHost((Integer) message.argument,selectableChannel.socket().getRemoteSocketAddress().toString(), selectableChannel);
 				// TODO: Send a Message of Type HOST_INFO, with this computers
 				// info
 			} else if (message.type == Message.NEW_CONNECTION) {
-				ledger.addHost((Integer) message.argument,
-						selectableChannel.socket().getRemoteSocketAddress().toString(), selectableChannel);
+				String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
+				ledger.addHost((Integer) message.argument,id, selectableChannel);
 				// TODO: Compile list of other machines in the network, send
 				// this in a message of type NETWORK_INFO
-				System.out.println("Recieved new connection from "
-						+ selectableChannel.socket().getRemoteSocketAddress().toString());
+				System.out.println("Recieved new connection from " + id);
 			} else if (message.type == Message.NETWORK_INFO) {
 				// TODO: Given a list of NETWORK_INFO connect to, and collect
 				// information from all other hosts in the network
@@ -140,8 +136,21 @@ public class NetworkHandler extends Thread {
 
 			}
 		} catch (IOException | ClassNotFoundException e) {
+			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
+			ledger.remove(id);
+			System.out.println("Closing connection with " + id);
+			sockets.remove(selectableChannel);
+			try {
+				selectableChannel.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 		}
+	}
+	
+	public String getNetworkLedgerAsString(){
+		return ledger.toString();
 	}
 
 	/**
@@ -168,7 +177,6 @@ public class NetworkHandler extends Thread {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
 		}
-
 	}
 
 }
