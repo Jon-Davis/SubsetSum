@@ -3,11 +3,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
 
 /**
@@ -21,9 +23,11 @@ public class NetworkHandler extends Thread {
 	private Selector selector;
 	private NetworkLedger ledger;
 	private String address;
+	private LinkedList<SocketChannel> pendingConnections;
 
 	public NetworkHandler(int numberOfProcessors) {
 		ledger = new NetworkLedger();
+		pendingConnections = new LinkedList<>();
 		try {
 			selector = Selector.open();
 			ServerSocketChannel listener = ServerSocketChannel.open();
@@ -42,8 +46,16 @@ public class NetworkHandler extends Thread {
 		while(SubsetSum.isRunning()){
 			int num = 0;
 			
+			while(pendingConnections.size() > 0){
+				try {
+					pendingConnections.removeFirst().register(selector, SelectionKey.OP_READ);
+				} catch (ClosedChannelException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
 			try {
-				num = selector.select();
+				num = selector.select(100);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -121,7 +133,8 @@ public class NetworkHandler extends Thread {
 		try {
 			socketChannel = SocketChannel.open();
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
-			socketChannel.register(selector, SelectionKey.OP_READ);
+			pendingConnections.add(socketChannel);
+			selector.wakeup();
 			ObjectOutputStream  oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
