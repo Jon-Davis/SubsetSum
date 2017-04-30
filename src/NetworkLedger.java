@@ -1,3 +1,5 @@
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.channels.NetworkChannel;
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -18,8 +20,8 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 	/**
 	 * Adds a host to the ledger
 	 */
-	public void addHost(int numberOfProcessors, String id, NetworkChannel assosiatedSocket){
-		network.put(id, new NetworkLedgerEntry(numberOfProcessors,id,assosiatedSocket));
+	public void addHost(int numberOfProcessors, String id, NetworkChannel assosiatedSocket,ObjectInputStream in, ObjectOutputStream out){
+		network.put(id, new NetworkLedgerEntry(numberOfProcessors,id,assosiatedSocket,in,out));
 	}
 	
 	public int getNumberOfProcessors(String id){
@@ -56,6 +58,14 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 			string.append(entry.toString() + System.lineSeparator());
 		}
 		return string.toString();
+	}
+
+	/**
+	 * @param ipAddress
+	 * @return
+	 */
+	public NetworkLedgerEntry getEntry(String ipAddress) {
+		return network.get(ipAddress);
 	}
 
 }
