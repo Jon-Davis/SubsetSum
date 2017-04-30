@@ -114,23 +114,24 @@ public class NetworkHandler extends Thread {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
-				ledger.addHost((Integer) message.argument, id, selectableChannel);
-				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
-				System.out.println("Sending host information to " + id);
-				oos.writeObject(hostInfo);
 				System.out.println("Recieved new connection from " + message.src);
-			} else if (message.type == Message.NEW_CONNECTION) {
 				ledger.addHost((Integer) message.argument, id, selectableChannel);
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
+			} else if (message.type == Message.NEW_CONNECTION) {
+				System.out.println("Recieved new connection from " + id);
+				ledger.addHost((Integer) message.argument, id, selectableChannel);
+				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
+				System.out.println("Sending host information to " + id);
+				oos.writeObject(hostInfo);
+				oos.flush();
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for(NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
 				Message networkInfo = new Message(this.address, id, Message.NETWORK_INFO, networkIDs);
 				System.out.println("Sending network information to " + id);
 				oos.writeObject(networkInfo);
-				System.out.println("Recieved new connection from " + id);
 			} else if (message.type == Message.NETWORK_INFO) {
 				System.out.println("Recieved network info.");
 				LinkedList<String> networkIDs = (LinkedList<String>) message.argument;
@@ -153,6 +154,7 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.REQUEST_RESPONSE) {
 
 			}
+			oos.flush();
 		} catch (IOException | ClassNotFoundException e) {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			ledger.remove(id);
