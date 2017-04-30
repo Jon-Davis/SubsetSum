@@ -110,6 +110,7 @@ public class NetworkHandler extends Thread {
 		try {
 			ObjectInputStream ois = new ObjectInputStream(selectableChannel.socket().getInputStream());
 			Message message = (Message) ois.readObject();
+			ois.reset();
 			ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			// determine the type of message
@@ -126,6 +127,7 @@ public class NetworkHandler extends Thread {
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
 				oos.flush();
+				oos.reset();
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for(NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
@@ -155,6 +157,7 @@ public class NetworkHandler extends Thread {
 
 			}
 			oos.flush();
+			oos.reset();
 		} catch (IOException | ClassNotFoundException e) {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			ledger.remove(id);
