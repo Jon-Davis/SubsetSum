@@ -115,16 +115,19 @@ public class NetworkHandler extends Thread {
 			if (message.type == Message.CONNECT) {
 				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
 				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
+				System.out.println("Sending host information to " +message.src);
 				oos.writeObject(hostInfo);
 				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NEW_CONNECTION) {
 				ledger.addHost((Integer) message.argument, message.src, selectableChannel);
 				Message hostInfo = new Message(this.address, message.src, Message.HOST_INFO, numberOfProcessors);
+				System.out.println("Sending host information to " +message.src);
 				oos.writeObject(hostInfo);
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for(NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
 				Message networkInfo = new Message(this.address, message.src, Message.NETWORK_INFO, networkIDs);
+				System.out.println("Sending network information to " +message.src);
 				oos.writeObject(networkInfo);
 				System.out.println("Recieved new connection from " + message.src);
 			} else if (message.type == Message.NETWORK_INFO) {
@@ -149,8 +152,6 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.REQUEST_RESPONSE) {
 
 			}
-			ois.close();
-			oos.close();
 		} catch (IOException | ClassNotFoundException e) {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			ledger.remove(id);
