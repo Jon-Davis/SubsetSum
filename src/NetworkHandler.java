@@ -273,7 +273,7 @@ public class NetworkHandler extends Thread {
 		total -= 1;
 		System.out.println("Total number of processors in network " + totalNumberOfProcessors + " Total number of combinations to test " + total);
 		for(NetworkLedgerEntry entry : ledger){
-			long amount = (total-start)/(processorsRemaining/entry.numberOfProcessors);
+			long amount = (long)((total-start)/(((double)processorsRemaining)/((double)entry.numberOfProcessors)));
 			if(entry.isSelf()){
 				end = start+amount;
 				System.out.println("processing iteration " + start + " to " +end);
