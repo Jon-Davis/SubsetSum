@@ -90,7 +90,6 @@ public class NetworkHandler extends Thread {
 			while (it.hasNext()) {
 				SelectionKey key = (SelectionKey) it.next();
 				if (key.interestOps() == SelectionKey.OP_ACCEPT && key.isAcceptable()) {
-					System.out.println(key.isAcceptable());
 					try {
 						sockets.add(((ServerSocketChannel) key.channel()).accept());
 					} catch (IOException e) {
@@ -125,6 +124,7 @@ public class NetworkHandler extends Thread {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+				beginRun = false;
 			}
 			if (endRun == true) {
 				try {
@@ -142,6 +142,7 @@ public class NetworkHandler extends Thread {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+				endRun = false;
 			}
 		}
 
