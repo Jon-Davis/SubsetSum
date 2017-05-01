@@ -22,9 +22,16 @@ public class SubsetSum {
 	
 	public static void main(String[] args){
 		Scanner systemIn = new Scanner(System.in);
-		System.out.println("How many processors:");
-		numberOfProcessors = Integer.parseInt(systemIn.nextLine());
-		System.out.println("Using " + numberOfProcessors + " processors. Starting program SubsetSum:");
+		while(true){
+			System.out.println("How many processors:");
+			try {
+				numberOfProcessors = Integer.parseInt(systemIn.nextLine());
+				break;
+			} catch (NumberFormatException e){
+				continue;
+			}
+		}
+		System.out.println("Using " + numberOfProcessors + " processors. Starting program SubsetSum, type 'help' for a list of commands.");
 		running = true;
 		networkHandler = new NetworkHandler(numberOfProcessors);
 		inputHandler = new InputHandler(systemIn);
@@ -83,17 +90,22 @@ public class SubsetSum {
 	 */
 	public synchronized void start(){
 		if(input.length == 3){
-			args.target = Double.parseDouble(input[1]);
-			String[] argsAsStrings = input[2].split("\\[")[1].split("\\]")[0].split(",");
-			LinkedHashSet<Double> doubleSet = new LinkedHashSet<>();
-			for(String string : argsAsStrings)
-				doubleSet.add(Double.parseDouble(string));
-			int i = 0;
-			args.set = new double[doubleSet.size()];
-			for(Double d : doubleSet)
-				args.set[i++] = d;
-			networkHandler.setBeginRun(true);
-			networkHandler.getSelector().wakeup();
+			try {
+				args.target = Double.parseDouble(input[1]);
+				String[] argsAsStrings = input[2].split("\\[")[1].split("\\]")[0].split(",");
+				LinkedHashSet<Double> doubleSet = new LinkedHashSet<>();
+				for(String string : argsAsStrings)
+					doubleSet.add(Double.parseDouble(string));
+				int i = 0;
+				args.set = new double[doubleSet.size()];
+				for(Double d : doubleSet)
+					args.set[i++] = d;
+				networkHandler.setBeginRun(true);
+				networkHandler.getSelector().wakeup();
+			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e){
+				System.out.println("Incorrect input for command 'compute' type help for more info");
+				return;
+			}
 		}
 		begin();
 	}
