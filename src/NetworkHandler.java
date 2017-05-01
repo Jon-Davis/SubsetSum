@@ -133,7 +133,8 @@ public class NetworkHandler extends Thread {
 				oos.flush();
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for (NetworkLedgerEntry entry : ledger)
-					networkIDs.add(entry.id);
+					if(!entry.id.equals(id))
+						networkIDs.add(entry.id);
 				Message networkInfo = new Message(this.address, id, Message.NETWORK_INFO, networkIDs);
 				System.out.println("Sending network information to " + id);
 				oos.writeObject(networkInfo);
