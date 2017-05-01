@@ -117,6 +117,8 @@ public class SubsetSum {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Finished part, found " +subsets.size() + " combinations");
+
 		networkHandler.endRun = true;
 		networkHandler.getSelector().wakeup();
 		while(true){
@@ -134,7 +136,7 @@ public class SubsetSum {
 				}
 			}
 		}
-		System.out.println("Finished Calulation, found " +subsets.size() + " combinations");
+		System.out.println("Finished Problem, total of " +subsets.size() + " combinations");
 	}
 
 	/**
