@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
@@ -26,12 +28,14 @@ public class NetworkHandler extends Thread {
 	private LinkedList<SocketChannel> sockets;
 	private ServerSocketChannel listener;
 	private int numberOfProcessors;
+	private int totalNumberOfProcessors;
 	private boolean beginRun = false;
 
 	public NetworkHandler(int numberOfProcessors) {
 		ledger = new NetworkLedger();
 		sockets = new LinkedList<>();
 		this.numberOfProcessors = numberOfProcessors;
+		this.totalNumberOfProcessors = numberOfProcessors;
 		try {
 			selector = Selector.open();
 			listener = ServerSocketChannel.open();
@@ -138,12 +142,14 @@ public class NetworkHandler extends Thread {
 			if (message.type == Message.CONNECT) {
 				System.out.println("Established new connection with " + message.src);
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
+				totalNumberOfProcessors += (int) message.argument;
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
 			} else if (message.type == Message.NEW_CONNECTION) {
 				System.out.println("Established new connection with " + id);
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
+				totalNumberOfProcessors += (int) message.argument;
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
@@ -163,6 +169,7 @@ public class NetworkHandler extends Thread {
 						connect(ids);
 			} else if (message.type == Message.HOST_INFO) {
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
+				totalNumberOfProcessors += (int) message.argument;
 				System.out.println("Established new connection with " + message.src);
 			} else if (message.type == Message.RUN) {
 				SubsetSum.getInstance().args = (ProgramArguments) message.argument;
@@ -183,6 +190,7 @@ public class NetworkHandler extends Thread {
 			try {
 				ledger.getEntry(id).getIn().close();
 				ledger.getEntry(id).getOut().close();
+				totalNumberOfProcessors -= ledger.getEntry(id).numberOfProcessors;
 				ledger.remove(id);
 				selectableChannel.close();
 			} catch (IOException e1) {
@@ -222,6 +230,26 @@ public class NetworkHandler extends Thread {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
 		}
+	}
+	
+	public TaskSet calculateTaskSet(){
+		int processorsRemaining = totalNumberOfProcessors;
+		BigInteger start = new BigInteger("0");
+		BigInteger total = new BigInteger("1");
+		BigInteger end = null;
+		total = total.shiftLeft(SubsetSum.getInstance().args.set.length);
+		System.out.println("Total number of processors in network " + totalNumberOfProcessors + " Total number of combinations to test " + total);
+		for(NetworkLedgerEntry entry : ledger){
+			BigInteger amount = total.subtract(start).divide(new BigInteger((processorsRemaining/entry.numberOfProcessors)+""));
+			if(entry.isSelf()){
+				end = start.add(amount);
+				System.out.println("Performing tasks " + start + " - " + end);
+			} else {
+				start = start.add(amount);
+				processorsRemaining -= entry.numberOfProcessors;
+			}
+		}
+		return null;
 	}
 
 	/**

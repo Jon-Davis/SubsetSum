@@ -97,6 +97,7 @@ public class SubsetSum {
 		for(double d : args.set)
 			System.out.print(d +" ");
 		System.out.println();
+		networkHandler.calculateTaskSet();
 	}
 
 	/**
