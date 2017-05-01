@@ -108,6 +108,7 @@ public class NetworkHandler extends Thread {
 						Message run = new Message(address,entry.getId(),Message.RUN,SubsetSum.getInstance().args);
 						ObjectOutputStream oos = entry.getOut();
 						try {
+							((SocketChannel) entry.assosiatedSocket).configureBlocking(false);
 							oos.writeObject(run);
 							oos.flush();
 						} catch (IOException e) {
