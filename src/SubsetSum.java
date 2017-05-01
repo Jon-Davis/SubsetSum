@@ -127,7 +127,7 @@ public class SubsetSum {
 				try {
 					synchronized (this) {
 						if(!networkHandler.networkComplete())	
-							this.wait();
+							this.wait(1000);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
