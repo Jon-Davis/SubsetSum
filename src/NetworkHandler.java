@@ -238,18 +238,18 @@ public class NetworkHandler extends Thread {
 		long total = 1;
 		long end = 0;
 		total = total<<SubsetSum.getInstance().args.set.length;
+		total -= 1;
 		System.out.println("Total number of processors in network " + totalNumberOfProcessors + " Total number of combinations to test " + total);
 		for(NetworkLedgerEntry entry : ledger){
 			long amount = (total-start)/(processorsRemaining/entry.numberOfProcessors);
 			if(entry.isSelf()){
 				end = start+amount;
-				System.out.println("Performing tasks " + start + " - " + end);
 			} else {
 				start = start+amount;
 				processorsRemaining -= entry.numberOfProcessors;
 			}
 		}
-		return new TaskSet();
+		return new TaskSet(null, start, end);
 	}
 
 	/**

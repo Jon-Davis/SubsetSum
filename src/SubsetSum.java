@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Scanner;
 
@@ -11,8 +12,11 @@ public class SubsetSum {
 	private static NetworkHandler networkHandler;
 	private static InputHandler inputHandler;
 	private static boolean running;
+	private static boolean calculating;
 	private String[] input;
 	private static int numberOfProcessors = 0;
+	private static TaskSet workingSet;
+	private static ArrayList<Long> subsets;
 	public ProgramArguments args = new ProgramArguments();
 	
 	
@@ -97,7 +101,12 @@ public class SubsetSum {
 		for(double d : args.set)
 			System.out.print(d +" ");
 		System.out.println();
-		networkHandler.calculateTaskSet();
+		workingSet = networkHandler.calculateTaskSet();
+		SubsetSumThread[] threads = new SubsetSumThread[numberOfProcessors];
+		for(int i = 0; i < threads.length; i++){
+			threads[i] = new SubsetSumThread();
+			threads[i].start();
+		}
 	}
 
 	/**
@@ -116,6 +125,34 @@ public class SubsetSum {
 		return running;
 	}
 	
-	
+	private class SubsetSumThread extends Thread{
+		private long start;
+		private long end;
+		
+		public void run(){
+			while(true){
+				long[] result = workingSet.requestSmallTask();
+				if(result == null)
+					break;
+				start = result[0] + 1;
+				end = result[1];
+				for(long i = start; i <= end; i++){
+					String bitString = Long.toBinaryString(i);
+					double sum = args.set[(args.set.length-1)-(bitString.length()-1)];
+					for(int e = 1; e < bitString.length(); e++){
+						if(bitString.charAt(e)=='1'){
+							sum += args.set[(args.set.length-1)-((bitString.length()-1)-e)];
+						}
+					}
+					if(sum == args.target){
+						synchronized(subsets){
+							subsets.add(i);
+						}
+					}
+				}
+			}
+		}
+		
+	}
 
 }
