@@ -33,11 +33,9 @@ public class NetworkHandler extends Thread {
 		sockets = new LinkedList<>();
 		this.numberOfProcessors = numberOfProcessors;
 		try {
-			selector = Selector.open();
 			listener = ServerSocketChannel.open();
 			listener.socket().bind(new InetSocketAddress(NetworkHandler.port));
 			listener.configureBlocking(false);
-			listener.register(this.getSelector(), SelectionKey.OP_ACCEPT);
 			address = InetAddress.getLocalHost().getHostAddress();
 			ledger.addHost(numberOfProcessors, address, listener, null, null, true);
 		} catch (IOException e) {
@@ -51,7 +49,8 @@ public class NetworkHandler extends Thread {
 			int num = 0;
 
 			try {
-				selector.close();
+				if (selector.isOpen())
+					selector.close();
 				selector = Selector.open();
 				listener.register(selector, SelectionKey.OP_ACCEPT);
 			} catch (IOException e2) {
@@ -102,23 +101,23 @@ public class NetworkHandler extends Thread {
 				}
 			}
 			keys.clear();
-			if(isBeginRun() == true){
-				for(NetworkLedgerEntry entry : ledger){
-					if(entry.isSelf() == false){
-						Message run = new Message(address,entry.getId(),Message.RUN,SubsetSum.getInstance().args);
-						ObjectOutputStream oos = entry.getOut();
-						try {
-							((SocketChannel) entry.assosiatedSocket).configureBlocking(false);
+			if (isBeginRun() == true) {
+				try {
+					selector.close();
+					for (NetworkLedgerEntry entry : ledger) {
+						if (entry.isSelf() == false) {
+							Message run = new Message(address, entry.getId(), Message.RUN,SubsetSum.getInstance().args);
+							ObjectOutputStream oos = entry.getOut();
+							((SocketChannel) entry.assosiatedSocket).configureBlocking(true);
 							oos.writeObject(run);
 							oos.flush();
-						} catch (IOException e) {
-							e.printStackTrace();
 						}
 					}
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
 		}
-		
 
 	}
 
