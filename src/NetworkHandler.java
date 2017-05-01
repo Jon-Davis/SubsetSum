@@ -109,6 +109,7 @@ public class NetworkHandler extends Thread {
 	public void read(SocketChannel selectableChannel) {
 		try {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
+			System.out.println("Recieved message from " + id);
 			if (!ledger.contains(id)) {
 				ledger.addHost(0, id, selectableChannel, new ObjectInputStream(selectableChannel.socket().getInputStream()),
 						new ObjectOutputStream(selectableChannel.socket().getOutputStream()));
@@ -118,18 +119,17 @@ public class NetworkHandler extends Thread {
 			ObjectOutputStream oos = ledger.getEntry(id).getOut();
 			// determine the type of message
 			if (message.type == Message.CONNECT) {
-				System.out.println("Recieved new connection from " + message.src);
+				System.out.println("Established new connection from " + message.src);
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
 			} else if (message.type == Message.NEW_CONNECTION) {
-				System.out.println("Recieved new connection from " + id);
+				System.out.println("Established new connection from " + id);
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
-				oos.flush();
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for (NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
@@ -144,7 +144,7 @@ public class NetworkHandler extends Thread {
 						connect(ids);
 			} else if (message.type == Message.HOST_INFO) {
 				ledger.getEntry(id).setNumberOfProcessors((int) message.argument);
-				System.out.println("Recieved new connection from " + message.src);
+				System.out.println("Established new connection from " + message.src);
 			} else if (message.type == Message.RUN) {
 				// TODO: Given a list of numbers to compute,
 				// calculate the permutations this host is responsible for given
@@ -161,15 +161,16 @@ public class NetworkHandler extends Thread {
 			oos.flush();
 		} catch (IOException | ClassNotFoundException e) {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
-			ledger.remove(id);
 			System.out.println("Closing connection with " + id);
 			sockets.remove(selectableChannel);
 			try {
+				ledger.getEntry(id).getIn().close();
+				ledger.getEntry(id).getOut().close();
+				ledger.remove(id);
 				selectableChannel.close();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			e.printStackTrace();
 		}
 	}
 
@@ -198,7 +199,6 @@ public class NetworkHandler extends Thread {
 			ObjectOutputStream oos = ledger.getEntry(ipAddress).getOut();
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
-			oos.flush();
 			selector.wakeup();
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " + ipAddress);
