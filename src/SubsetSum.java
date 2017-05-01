@@ -124,7 +124,9 @@ public class SubsetSum {
 				break;
 			} else {
 				try {
-					this.wait();
+					synchronized (this) {
+						this.wait();
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

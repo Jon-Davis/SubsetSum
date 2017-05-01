@@ -197,8 +197,10 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.NOTIFY) {
 				networksFindings.addAll((Collection<? extends Long>) message.argument);
 				ledger.getEntry(id).setKnownCompleted(true);
-				if(networkComplete())
-					SubsetSum.getInstance().notify();
+				synchronized (SubsetSum.getInstance()) {
+					if(networkComplete())
+						SubsetSum.getInstance().notify();
+				}
 			} else if (message.type == Message.REQUEST) {
 
 			} else if (message.type == Message.REQUEST_RESPONSE) {
