@@ -87,12 +87,12 @@ public class SubsetSum {
 		args.set = new double[doubleSet.size()];
 		for(Double d : doubleSet)
 			args.set[i++] = d;
+		networkHandler.setBeginRun(true);
+		networkHandler.getSelector().wakeup();
 		begin();
 	}
 	
 	public void begin(){
-		networkHandler.setBeginRun(true);
-		networkHandler.getSelector().wakeup();
 		System.out.print("Begining new SubsetSum calculation, target = " + args.target + " array = ");
 		for(double d : args.set)
 			System.out.print(d +" ");
