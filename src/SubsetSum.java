@@ -54,9 +54,12 @@ public class SubsetSum {
 			System.out.println("connect ipaddress - connects this computer with an exsisting network given an ip address in that network");
 			System.out.println("compute # [#,#,#] - computes the given array, checking to see if any subset of the array add to the given digit");
 			System.out.println("network           - returns the current network ledger");
+			System.out.println("sockets           - returns the current number of sockets");
 		} else if (input[0].toLowerCase().equals("network")){
 			System.out.println(networkHandler.getNetworkLedgerAsString());
-		} else {
+		} else if (input[0].toLowerCase().equals("sockets")){
+			System.out.println(networkHandler.numberOfSockets());
+		}else {
 			System.out.println(input[0] + " is not a valid command, type help for a list of valid commands.");
 		}
 	}

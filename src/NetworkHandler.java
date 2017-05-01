@@ -82,7 +82,7 @@ public class NetworkHandler extends Thread {
 			while (it.hasNext()) {
 				SelectionKey key = (SelectionKey) it.next();
 				if (key.interestOps() == SelectionKey.OP_ACCEPT && key.isAcceptable()) {
-					// register the new connection with the Selector
+					System.out.println(key.isAcceptable());
 					try {
 						sockets.add(((ServerSocketChannel) key.channel()).accept());
 					} catch (IOException e) {
@@ -191,6 +191,7 @@ public class NetworkHandler extends Thread {
 			socketChannel = SocketChannel.open();
 			socketChannel.configureBlocking(true);
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
+			System.out.println("Socket to " + ipAddress + " created");
 			sockets.add(socketChannel);
 			ledger.addHost(0, ipAddress, socketChannel, new ObjectInputStream(socketChannel.socket().getInputStream()),
 					new ObjectOutputStream(socketChannel.socket().getOutputStream()));
@@ -203,6 +204,14 @@ public class NetworkHandler extends Thread {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	public int numberOfSockets() {
+		// TODO Auto-generated method stub
+		return sockets.size() + 1;
 	}
 
 }
