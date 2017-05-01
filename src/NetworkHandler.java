@@ -195,12 +195,12 @@ public class NetworkHandler extends Thread {
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
 			System.out.println("Socket to " + ipAddress + " created");
 			sockets.add(socketChannel);
-			ObjectInputStream ois = new ObjectInputStream(socketChannel.socket().getInputStream());
 			ObjectOutputStream oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
-			ledger.addHost(0, ipAddress, socketChannel, ois, oos);
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
 			oos.flush();
+			ObjectInputStream ois = new ObjectInputStream(socketChannel.socket().getInputStream());
+			ledger.addHost(0, ipAddress, socketChannel, ois, oos);
 			selector.wakeup();
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " + ipAddress);
