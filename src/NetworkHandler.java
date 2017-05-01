@@ -128,7 +128,6 @@ public class NetworkHandler extends Thread {
 			}
 			if (endRun == true) {
 				try {
-					System.out.println("sending end message");
 					selector.close();
 					for (NetworkLedgerEntry entry : ledger) {
 						if (entry.isSelf() == false) {
