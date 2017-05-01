@@ -33,6 +33,7 @@ public class NetworkHandler extends Thread {
 		sockets = new LinkedList<>();
 		this.numberOfProcessors = numberOfProcessors;
 		try {
+			selector = Selector.open();
 			listener = ServerSocketChannel.open();
 			listener.socket().bind(new InetSocketAddress(NetworkHandler.port));
 			listener.configureBlocking(false);
