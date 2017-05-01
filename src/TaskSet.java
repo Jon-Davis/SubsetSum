@@ -39,9 +39,9 @@ public class TaskSet {
 	 */
 	public synchronized long[] requestLargeTask(){
 		if(begin != end){
-			if(end-begin > 32768 * 2){
-				begin += 32768;
-				return new long[] {begin-32768,begin};
+			if(end-begin > 1048576 * 2){
+				begin += 1048576;
+				return new long[] {begin-1048576,begin};
 			} 
 		}
 		return null;

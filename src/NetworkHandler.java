@@ -10,6 +10,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
@@ -29,7 +31,8 @@ public class NetworkHandler extends Thread {
 	private ServerSocketChannel listener;
 	private int numberOfProcessors;
 	private int totalNumberOfProcessors;
-	private boolean beginRun = false;
+	public boolean beginRun = false, endRun = false;
+	public ArrayList<Long> networksFindings;
 
 	public NetworkHandler(int numberOfProcessors) {
 		ledger = new NetworkLedger();
@@ -122,6 +125,23 @@ public class NetworkHandler extends Thread {
 					e1.printStackTrace();
 				}
 			}
+			if (endRun == true) {
+				try {
+					selector.close();
+					for (NetworkLedgerEntry entry : ledger) {
+						if (entry.isSelf() == false) {
+							SubsetSum.getInstance();
+							Message run = new Message(address, entry.getId(), Message.NOTIFY,SubsetSum.subsets);
+							ObjectOutputStream oos = entry.getOut();
+							((SocketChannel) entry.assosiatedSocket).configureBlocking(true);
+							oos.writeObject(run);
+							oos.flush();
+						}
+					}
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
 
 	}
@@ -175,8 +195,10 @@ public class NetworkHandler extends Thread {
 				SubsetSum.getInstance().args = (ProgramArguments) message.argument;
 				SubsetSum.getInstance().begin();
 			} else if (message.type == Message.NOTIFY) {
-				// TODO: The src of this message is notifying this host that it
-				// has completed all of its assigned work
+				networksFindings.addAll((Collection<? extends Long>) message.argument);
+				ledger.getEntry(id).setKnownCompleted(true);
+				if(networkComplete())
+					SubsetSum.getInstance().notify();
 			} else if (message.type == Message.REQUEST) {
 
 			} else if (message.type == Message.REQUEST_RESPONSE) {
@@ -197,6 +219,14 @@ public class NetworkHandler extends Thread {
 				e1.printStackTrace();
 			}
 		}
+	}
+	
+	public synchronized boolean networkComplete(){
+		for(NetworkLedgerEntry entry : ledger){
+			if(!entry.isSelf() && entry.isKnownCompleted() == false)
+				return false;
+		}
+		return true;
 	}
 
 	public String getNetworkLedgerAsString() {
@@ -273,6 +303,16 @@ public class NetworkHandler extends Thread {
 	 */
 	public void setBeginRun(boolean beginRun) {
 		this.beginRun = beginRun;
+	}
+
+	/**
+	 * 
+	 */
+	public void reset() {
+		networksFindings = new ArrayList<>();
+		for(NetworkLedgerEntry entry : ledger){
+			entry.setKnownCompleted(false);
+		}
 	}
 
 }

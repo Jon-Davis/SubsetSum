@@ -16,7 +16,7 @@ public class SubsetSum {
 	private String[] input;
 	private static int numberOfProcessors = 0;
 	private static TaskSet workingSet;
-	private static ArrayList<Long> subsets;
+	static ArrayList<Long> subsets;
 	public ProgramArguments args = new ProgramArguments();
 	
 	
@@ -103,10 +103,34 @@ public class SubsetSum {
 		System.out.println();
 		workingSet = networkHandler.calculateTaskSet();
 		SubsetSumThread[] threads = new SubsetSumThread[numberOfProcessors];
+		subsets = new ArrayList<>();
+		networkHandler.reset();
 		for(int i = 0; i < threads.length; i++){
 			threads[i] = new SubsetSumThread();
 			threads[i].start();
 		}
+		for(int i = 0; i < threads.length; i++){
+			try {
+				threads[i].join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		networkHandler.endRun = true;
+		networkHandler.getSelector().wakeup();
+		while(true){
+			if(networkHandler.networkComplete()){
+				subsets.addAll(networkHandler.networksFindings);
+				break;
+			} else {
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("Finished Calulation, found " +subsets.size() + " combinations");
 	}
 
 	/**
