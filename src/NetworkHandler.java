@@ -130,6 +130,7 @@ public class NetworkHandler extends Thread {
 				Message hostInfo = new Message(this.address, id, Message.HOST_INFO, numberOfProcessors);
 				System.out.println("Sending host information to " + id);
 				oos.writeObject(hostInfo);
+				oos.flush();
 				LinkedList<String> networkIDs = new LinkedList<>();
 				for (NetworkLedgerEntry entry : ledger)
 					networkIDs.add(entry.id);
@@ -194,11 +195,12 @@ public class NetworkHandler extends Thread {
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
 			System.out.println("Socket to " + ipAddress + " created");
 			sockets.add(socketChannel);
-			ledger.addHost(0, ipAddress, socketChannel, new ObjectInputStream(socketChannel.socket().getInputStream()),
-					new ObjectOutputStream(socketChannel.socket().getOutputStream()));
-			ObjectOutputStream oos = ledger.getEntry(ipAddress).getOut();
+			ObjectInputStream ois = new ObjectInputStream(socketChannel.socket().getInputStream());
+			ObjectOutputStream oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
+			ledger.addHost(0, ipAddress, socketChannel, ois, oos);
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
+			oos.flush();
 			selector.wakeup();
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " + ipAddress);
