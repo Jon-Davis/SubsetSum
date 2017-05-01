@@ -82,17 +82,19 @@ public class SubsetSum {
 	 * Begins a computation
 	 */
 	public synchronized void start(){
-		args.target = Double.parseDouble(input[1]);
-		String[] argsAsStrings = input[2].split("\\[")[1].split("\\]")[0].split(",");
-		LinkedHashSet<Double> doubleSet = new LinkedHashSet<>();
-		for(String string : argsAsStrings)
-			doubleSet.add(Double.parseDouble(string));
-		int i = 0;
-		args.set = new double[doubleSet.size()];
-		for(Double d : doubleSet)
-			args.set[i++] = d;
-		networkHandler.setBeginRun(true);
-		networkHandler.getSelector().wakeup();
+		if(input.length == 3){
+			args.target = Double.parseDouble(input[1]);
+			String[] argsAsStrings = input[2].split("\\[")[1].split("\\]")[0].split(",");
+			LinkedHashSet<Double> doubleSet = new LinkedHashSet<>();
+			for(String string : argsAsStrings)
+				doubleSet.add(Double.parseDouble(string));
+			int i = 0;
+			args.set = new double[doubleSet.size()];
+			for(Double d : doubleSet)
+				args.set[i++] = d;
+			networkHandler.setBeginRun(true);
+			networkHandler.getSelector().wakeup();
+		}
 		begin();
 	}
 	
@@ -104,7 +106,6 @@ public class SubsetSum {
 		workingSet = networkHandler.calculateTaskSet();
 		SubsetSumThread[] threads = new SubsetSumThread[numberOfProcessors];
 		subsets = new ArrayList<>();
-		networkHandler.reset();
 		for(int i = 0; i < threads.length; i++){
 			threads[i] = new SubsetSumThread();
 			threads[i].start();

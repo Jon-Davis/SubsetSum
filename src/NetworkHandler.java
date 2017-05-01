@@ -110,6 +110,7 @@ public class NetworkHandler extends Thread {
 			}
 			keys.clear();
 			if (isBeginRun() == true) {
+				reset();
 				try {
 					selector.close();
 					for (NetworkLedgerEntry entry : ledger) {
@@ -193,8 +194,10 @@ public class NetworkHandler extends Thread {
 				System.out.println("Established new connection with " + message.src);
 			} else if (message.type == Message.RUN) {
 				SubsetSum.getInstance().args = (ProgramArguments) message.argument;
-				SubsetSum.getInstance().begin();
+				reset();
+				SubsetSum.getInstance().addInput(new String[] {"compute"});
 			} else if (message.type == Message.NOTIFY) {
+				System.out.println(id + " has finished");
 				networksFindings.addAll((Collection<? extends Long>) message.argument);
 				ledger.getEntry(id).setKnownCompleted(true);
 				synchronized (SubsetSum.getInstance()) {
