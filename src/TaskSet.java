@@ -24,6 +24,7 @@ public class TaskSet {
 		if(begin < end){
 			if(end-begin >= 1024){
 				begin += 1024;
+				printProgress();
 				return new long[] {begin-1024,begin};
 			} else {
 				long temp = begin;
@@ -45,5 +46,19 @@ public class TaskSet {
 			} 
 		}
 		return null;
+	}
+	
+	public void printProgress(){
+		final int width = 50; // progress bar width in chars
+		final double progressPercentage = (((double) begin)/((double) end));
+	    System.out.print('\r'+"[");
+	    int i = 0;
+	    for (; i <= (int)(progressPercentage*width); i++) {
+	      System.out.print(".");
+	    }
+	    for (; i < width; i++) {
+	      System.out.print(" ");
+	    }
+	    System.out.print("]");
 	}
 }
