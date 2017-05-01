@@ -20,8 +20,8 @@ public class NetworkLedger implements Iterable<NetworkLedgerEntry>{
 	/**
 	 * Adds a host to the ledger
 	 */
-	public void addHost(int numberOfProcessors, String id, NetworkChannel assosiatedSocket,ObjectInputStream in, ObjectOutputStream out){
-		network.put(id, new NetworkLedgerEntry(numberOfProcessors,id,assosiatedSocket,in,out));
+	public void addHost(int numberOfProcessors, String id, NetworkChannel assosiatedSocket,ObjectInputStream in, ObjectOutputStream out, boolean isSelf){
+		network.put(id, new NetworkLedgerEntry(numberOfProcessors,id,assosiatedSocket,in,out,isSelf));
 	}
 	
 	public int getNumberOfProcessors(String id){

@@ -15,20 +15,35 @@ public class NetworkLedgerEntry {
 	public boolean knownCompleted;
 	private ObjectInputStream in;
 	private ObjectOutputStream out;
+	private boolean isSelf;
 
 	/**
 	 * @param numberOfProcessors
 	 * @param id
 	 * @param assosiatedSocket2
 	 */
-	public NetworkLedgerEntry(int numberOfProcessors, String id, NetworkChannel assosiatedSocket, ObjectInputStream in,
-			ObjectOutputStream out) {
+	public NetworkLedgerEntry(int numberOfProcessors, String id, NetworkChannel assosiatedSocket, ObjectInputStream in, ObjectOutputStream out, boolean isSelf) {
 		this.numberOfProcessors = numberOfProcessors;
 		this.id = id;
 		this.assosiatedSocket = assosiatedSocket;
 		this.in = in;
 		this.out = out;
 		knownCompleted = false;
+		this.isSelf = isSelf;
+	}
+
+	/**
+	 * @return the isSelf
+	 */
+	public boolean isSelf() {
+		return isSelf;
+	}
+
+	/**
+	 * @param isSelf the isSelf to set
+	 */
+	public void setSelf(boolean isSelf) {
+		this.isSelf = isSelf;
 	}
 
 	/**

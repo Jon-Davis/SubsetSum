@@ -1,3 +1,4 @@
+import java.util.LinkedHashSet;
 import java.util.Scanner;
 
 /**
@@ -11,8 +12,8 @@ public class SubsetSum {
 	private static InputHandler inputHandler;
 	private static boolean running;
 	private String[] input;
-	private static int mode = 0;
 	private static int numberOfProcessors = 0;
+	public ProgramArguments args = new ProgramArguments();
 	
 	
 	public static void main(String[] args){
@@ -77,7 +78,25 @@ public class SubsetSum {
 	 * Begins a computation
 	 */
 	public synchronized void start(){
-		
+		args.target = Double.parseDouble(input[1]);
+		String[] argsAsStrings = input[2].split("\\[")[1].split("\\]")[0].split(",");
+		LinkedHashSet<Double> doubleSet = new LinkedHashSet<>();
+		for(String string : argsAsStrings)
+			doubleSet.add(Double.parseDouble(string));
+		int i = 0;
+		args.set = new double[doubleSet.size()];
+		for(Double d : doubleSet)
+			args.set[i++] = d;
+		begin();
+	}
+	
+	public void begin(){
+		networkHandler.setBeginRun(true);
+		networkHandler.getSelector().wakeup();
+		System.out.print("Begining new SubsetSum calculation, target = " + args.target + " array = ");
+		for(double d : args.set)
+			System.out.print(d +" ");
+		System.out.println();
 	}
 
 	/**
