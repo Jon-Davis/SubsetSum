@@ -15,6 +15,7 @@ public class SubsetSum {
 	private static InputHandler inputHandler;
 	private static boolean running;
 	private static boolean calculating;
+	public static boolean waiting = false;
 	private String[] input;
 	private static int numberOfProcessors = 0;
 	private static TaskSet workingSet;
@@ -242,11 +243,17 @@ public class SubsetSum {
 		networkHandler.getSelector().wakeup();
 		while (true) {
 			if (networkHandler.networkComplete()) {
-				subsets.addAll(networkHandler.networksFindings);
+				networkHandler.printNetworkStatus();
+				for(long networkFinding : networkHandler.networksFindings)
+					if(!subsets.contains(networkFinding))
+						subsets.add(networkFinding);
+				waiting = false;
 				break;
 			} else {
 				try {
 					synchronized (this) {
+						networkHandler.printNetworkStatus();
+						waiting = true;
 						if (!networkHandler.networkComplete())
 							this.wait(1000);
 					}

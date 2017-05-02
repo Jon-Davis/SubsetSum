@@ -1,8 +1,13 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 
 public class TaskSet {
 	private String owner; // who is responsible for this TaskGroup
 	private Long begin;	  // the first TaskGroup this TaskGroup is responsible for
+	private final long firstStart;
 	private Long end;	  // the last TaskGroup this TaskGroup is responsible for
 	
 	/**
@@ -15,6 +20,7 @@ public class TaskSet {
 		this.owner = owner;
 		this.begin = begin;
 		this.end = end;
+		this.firstStart = begin;
 	}
 	
 	/**
@@ -29,6 +35,7 @@ public class TaskSet {
 			} else {
 				long temp = begin;
 				begin = end;
+				printProgress();
 				return new long[] {temp, end};
 			}
 		}
@@ -50,15 +57,35 @@ public class TaskSet {
 	
 	public void printProgress(){
 		final int width = 50; // progress bar width in chars
-		final double progressPercentage = (((double) begin)/((double) end));
-	    System.out.print('\r'+"[");
+		final double progressPercentage = (((double) begin - firstStart)/((double) end - firstStart));
+		StringBuilder progress = new StringBuilder();
+		progress.append("[");
 	    int i = 0;
 	    for (; i <= (int)(progressPercentage*width); i++) {
-	      System.out.print(".");
+	    	progress.append(".");
 	    }
 	    for (; i < width; i++) {
-	      System.out.print(" ");
+	    	progress.append(" ");
 	    }
-	    System.out.print("]");
+	    progress.append("]");
+	    if(begin >= end){
+	    	DecimalFormat formatter = new DecimalFormat("#000");
+	    	progress.append(" ");
+	    	progress.append(formatter.format(progressPercentage*100));
+	    	progress.append("% ");
+	    	progress.append(begin-firstStart);
+	    	progress.append("/");
+	    	progress.append(end-firstStart);
+	    	System.out.println('\r'+progress.toString());
+	    }else{
+	    	DecimalFormat formatter = new DecimalFormat("#00");
+	    	progress.append(" ");
+	    	progress.append(formatter.format(progressPercentage*100));
+	    	progress.append("% ");
+	    	progress.append(begin-firstStart);
+	    	progress.append("/");
+	    	progress.append(end-firstStart);
+	    	System.out.print('\r'+progress.toString());
+	    }
 	}
 }

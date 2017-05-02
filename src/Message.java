@@ -27,5 +27,9 @@ public final class Message implements Serializable{
 		this.type = type;
 		this.argument = argument;
 	}
+	
+	public String toString(){
+		return "src = " + src + " type = " + type + " argument = " + argument; 
+	}
 
 }

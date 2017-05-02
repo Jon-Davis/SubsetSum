@@ -10,6 +10,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -82,7 +83,7 @@ public class NetworkHandler extends Thread {
 				e.printStackTrace();
 			}
 
-			if (num == 0 && isBeginRun() == false)
+			if (num == 0 && isBeginRun() == false && endRun == false)
 				continue;
 
 			Set keys = selector.selectedKeys();
@@ -114,7 +115,8 @@ public class NetworkHandler extends Thread {
 					selector.close();
 					for (NetworkLedgerEntry entry : ledger) {
 						if (entry.isSelf() == false) {
-							Message run = new Message(address, entry.getId(), Message.RUN,SubsetSum.getInstance().args);
+							Message run = new Message(address, entry.getId(), Message.RUN,
+									SubsetSum.getInstance().args);
 							ObjectOutputStream oos = entry.getOut();
 							((SocketChannel) entry.assosiatedSocket).configureBlocking(true);
 							oos.writeObject(run);
@@ -131,8 +133,7 @@ public class NetworkHandler extends Thread {
 					selector.close();
 					for (NetworkLedgerEntry entry : ledger) {
 						if (entry.isSelf() == false) {
-							SubsetSum.getInstance();
-							Message run = new Message(address, entry.getId(), Message.NOTIFY,SubsetSum.subsets);
+							Message run = new Message(address, entry.getId(), Message.NOTIFY, SubsetSum.subsets);
 							ObjectOutputStream oos = entry.getOut();
 							((SocketChannel) entry.assosiatedSocket).configureBlocking(true);
 							oos.writeObject(run);
@@ -151,12 +152,13 @@ public class NetworkHandler extends Thread {
 	public void read(SocketChannel selectableChannel) {
 		try {
 			String id = selectableChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
-			System.out.println("Recieved message from " + id);
 			if (!ledger.contains(id)) {
-				ledger.addHost(0, id, selectableChannel,
-						new ObjectInputStream(selectableChannel.socket().getInputStream()),
-						new ObjectOutputStream(selectableChannel.socket().getOutputStream()), false);
+				ObjectOutputStream oos = new ObjectOutputStream(selectableChannel.socket().getOutputStream());
+				ledger.addHost(0, id, selectableChannel, null, oos, false);
 			}
+			if (ledger.getEntry(id).getIn() == null)
+				ledger.getEntry(id).setIn(new ObjectInputStream(selectableChannel.socket().getInputStream()));
+
 			ObjectInputStream ois = ledger.getEntry(id).getIn();
 			Message message = (Message) ois.readObject();
 			ObjectOutputStream oos = ledger.getEntry(id).getOut();
@@ -196,14 +198,15 @@ public class NetworkHandler extends Thread {
 			} else if (message.type == Message.RUN) {
 				SubsetSum.getInstance().args = (ProgramArguments) message.argument;
 				reset();
-				SubsetSum.getInstance().addInput(new String[] {"compute"});
+				SubsetSum.getInstance().addInput(new String[] { "compute" });
 			} else if (message.type == Message.NOTIFY) {
-				System.out.println(id + " has finished");
 				networksFindings.addAll((Collection<? extends Long>) message.argument);
 				ledger.getEntry(id).setKnownCompleted(true);
 				synchronized (SubsetSum.getInstance()) {
-					if(networkComplete())
+					if (SubsetSum.waiting && networkComplete())
 						SubsetSum.getInstance().notify();
+					else if (SubsetSum.waiting)
+						printNetworkStatus();
 				}
 			} else if (message.type == Message.REQUEST) {
 
@@ -226,10 +229,10 @@ public class NetworkHandler extends Thread {
 			}
 		}
 	}
-	
-	public synchronized boolean networkComplete(){
-		for(NetworkLedgerEntry entry : ledger){
-			if(!entry.isSelf() && entry.isKnownCompleted() == false)
+
+	public synchronized boolean networkComplete() {
+		for (NetworkLedgerEntry entry : ledger) {
+			if (!entry.isSelf() && entry.isKnownCompleted() == false)
 				return false;
 		}
 		return true;
@@ -254,35 +257,78 @@ public class NetworkHandler extends Thread {
 			socketChannel.configureBlocking(true);
 			socketChannel.connect(new InetSocketAddress(ipAddress, port));
 			System.out.println("Socket to " + ipAddress + " created");
+			String id = socketChannel.socket().getRemoteSocketAddress().toString().split("/")[1].split(":")[0];
 			sockets.add(socketChannel);
 			ObjectOutputStream oos = new ObjectOutputStream(socketChannel.socket().getOutputStream());
 			Message newConnect = new Message(this.address, ipAddress, Message.NEW_CONNECTION, numberOfProcessors);
 			oos.writeObject(newConnect);
 			oos.flush();
-			ObjectInputStream ois = new ObjectInputStream(socketChannel.socket().getInputStream());
-			ledger.addHost(0, ipAddress, socketChannel, ois, oos, false);
+			ledger.addHost(0, id, socketChannel, null, oos, false);
 			selector.wakeup();
 		} catch (IOException e) {
 			System.out.println("Failed to connect to " + ipAddress);
 			return;
 		}
 	}
-	
-	public TaskSet calculateTaskSet(){
+
+	public void printNetworkStatus() {
+		int end = this.sockets.size() + 1;
+		int begin = 1;
+		for (NetworkLedgerEntry entry : ledger) {
+			if (!entry.isSelf() && entry.isKnownCompleted())
+				begin++;
+		}
+		final int width = 50; // progress bar width in chars
+		final double progressPercentage = (((double) begin) / ((double) end));
+		StringBuilder progress = new StringBuilder();
+		progress.append("[");
+		int i = 0;
+		for (; i <= (int) (progressPercentage * width); i++) {
+			progress.append(".");
+		}
+		for (; i < width; i++) {
+			progress.append(" ");
+		}
+		progress.append("]");
+		if (progressPercentage * 100 >= 100.0) {
+			DecimalFormat formatter = new DecimalFormat("#000");
+			progress.append(" ");
+			progress.append(formatter.format(progressPercentage * 100));
+			progress.append("% ");
+			progress.append(begin);
+			progress.append("/");
+			progress.append(end);
+			System.out.println('\r' + progress.toString());
+		} else {
+			DecimalFormat formatter = new DecimalFormat("#00");
+			progress.append(" ");
+			progress.append(formatter.format(progressPercentage * 100));
+			progress.append("% ");
+			progress.append(begin);
+			progress.append("/");
+			progress.append(end);
+			System.out.print('\r' + progress.toString());
+		}
+	}
+
+	public TaskSet calculateTaskSet() {
 		int processorsRemaining = totalNumberOfProcessors;
 		long start = 0;
 		long total = 1;
 		long end = 0;
-		total = total<<SubsetSum.getInstance().args.set.length;
+		total = total << SubsetSum.getInstance().args.set.length;
 		total -= 1;
-		System.out.println("Total number of processors in network " + totalNumberOfProcessors + " Total number of combinations to test " + total);
-		for(NetworkLedgerEntry entry : ledger){
-			long amount = (long)((total-start)/(((double)processorsRemaining)/((double)entry.numberOfProcessors)));
-			if(entry.isSelf()){
-				end = start+amount;
-				System.out.println("processing iteration " + start + " to " +end);
+		System.out.println("Total number of processors in network " + totalNumberOfProcessors
+				+ " Total number of combinations to test " + total);
+		for (NetworkLedgerEntry entry : ledger) {
+			long amount = (long) ((total - start)
+					/ (((double) processorsRemaining) / ((double) entry.numberOfProcessors)));
+			if (entry.isSelf()) {
+				end = start + amount;
+				System.out.println("processing iteration " + start + " to " + end);
+				break;
 			} else {
-				start = start+amount;
+				start = start + amount;
 				processorsRemaining -= entry.numberOfProcessors;
 			}
 		}
@@ -317,7 +363,7 @@ public class NetworkHandler extends Thread {
 	 */
 	public void reset() {
 		networksFindings = new ArrayList<>();
-		for(NetworkLedgerEntry entry : ledger){
+		for (NetworkLedgerEntry entry : ledger) {
 			entry.setKnownCompleted(false);
 		}
 	}
